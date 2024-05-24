@@ -16,37 +16,36 @@ class Juego {
         int numParticipantes = scanner.nextInt();
         scanner.nextLine(); // Consumir el salto de línea
 
-        String[] nombres = new String[numParticipantes];
-        int[] puntajes = new int[numParticipantes];
+        Jugador[] jugadores = new Jugador[numParticipantes];
 
         for (int i = 0; i < numParticipantes; i++) {
             System.out.print("Por favor indique nombre de participante #" + (i + 1) + ": ");
-            nombres[i] = scanner.nextLine();
+            jugadores[i] = new Jugador(scanner.nextLine());
         }
 
         int jugador = 0;
 
         while (true) {
-            System.out.println(dtf.format(LocalDateTime.now()) + " - " + obtenerPuntajesFormateados(nombres, puntajes));
+            System.out.println(dtf.format(LocalDateTime.now()) + " - " + obtenerPuntajesFormateados(jugadores));
             System.out.println();
-            System.out.println(dtf.format(LocalDateTime.now()) + " - Ahora es el turno de " + nombres[jugador]);
+            System.out.println(dtf.format(LocalDateTime.now()) + " - Ahora es el turno de " + jugadores[jugador].getNombre());
             int resultadoTurno = jugarTurno();
 
             if (resultadoTurno == 0) {
-                System.out.println(nombres[jugador] + " ha perdido todos los puntos acumulados. Siguiente turno...");
-                puntajes[jugador] = 0;
+                System.out.println(jugadores[jugador].getNombre() + " ha perdido todos los puntos acumulados. Siguiente turno...");
+                jugadores[jugador].setPuntaje(0);
             } else {
-                puntajes[jugador] += resultadoTurno;
+                jugadores[jugador].incrementarPuntaje(resultadoTurno);
             }
 
-            if (puntajes[jugador] >= 13) {
-                System.out.println("¡" + nombres[jugador] + " ha obtenido 13 o más puntos! Todos los demás participantes tienen un turno adicional.");
+            if (jugadores[jugador].getPuntaje() >= 13) {
+                System.out.println("¡" + jugadores[jugador] + " ha obtenido 13 o más puntos! Todos los demás participantes tienen un turno adicional.");
                 for (int j = 0; j < numParticipantes; j++) {
                     if (j != jugador) {
-                        puntajes[j] += jugarTurno();
+                        jugadores[j].incrementarPuntaje(jugarTurno());
                     }
                 }
-                determinarGanador(nombres, puntajes);
+                determinarGanador(jugadores);
                 System.out.println("¡Gracias por jugar!");
                 scanner.close();
                 System.exit(0);
@@ -57,11 +56,11 @@ class Juego {
         }
     }
 
-    private static String obtenerPuntajesFormateados(String[] nombres, int[] puntajes) {
+    private static String obtenerPuntajesFormateados(Jugador[] jugadores) {
         StringBuilder resultado = new StringBuilder("PUNTAJES: ");
-        for (int i = 0; i < nombres.length; i++) {
-            resultado.append(nombres[i]).append(" = ").append(puntajes[i]);
-            if (i < nombres.length - 1) {
+        for (int i = 0; i < jugadores.length; i++) {
+            resultado.append(jugadores[i].toString());
+            if (i < jugadores.length - 1) {
                 resultado.append(", ");
             }
         }
@@ -118,14 +117,14 @@ class Juego {
         }
     }
 
-    private static void determinarGanador(String[] nombres, int[] puntajes) {
+    private static void determinarGanador(Jugador[] jugadores) {
         int maxPuntaje = -1;
         String ganador = "";
 
-        for (int i = 0; i < puntajes.length; i++) {
-            if (puntajes[i] > maxPuntaje) {
-                maxPuntaje = puntajes[i];
-                ganador = nombres[i];
+        for (int i = 0; i < jugadores.length; i++) {
+            if (jugadores[i].getPuntaje() > maxPuntaje) {
+                maxPuntaje = jugadores[i].getPuntaje();
+                ganador = jugadores[i].getNombre();
             }
         }
 
@@ -198,6 +197,37 @@ class Juego {
             }
         }
         System.out.println();
+    }
+}
+
+class Jugador {
+
+    private String nombre = null;
+    private int puntaje = 0;
+
+    public Jugador(String nombre){
+        this.nombre = nombre;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public int getPuntaje() {
+        return puntaje;
+    }
+
+    public void setPuntaje(int puntaje) {
+        this.puntaje = puntaje;
+    }
+
+    public void incrementarPuntaje(int puntaje){
+        this.puntaje += puntaje;
+    }
+
+    @Override
+    public String toString() {
+        return nombre + " = " + puntaje;
     }
 }
 
