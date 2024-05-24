@@ -23,36 +23,34 @@ class Juego {
             jugadores[i] = new Jugador(scanner.nextLine());
         }
 
-        int jugador = 0;
-
         while (true) {
-            System.out.println(dtf.format(LocalDateTime.now()) + " - " + obtenerPuntajesFormateados(jugadores));
-            System.out.println();
-            System.out.println(dtf.format(LocalDateTime.now()) + " - Ahora es el turno de " + jugadores[jugador].getNombre());
-            int resultadoTurno = jugarTurno();
 
-            if (resultadoTurno == 0) {
-                System.out.println(jugadores[jugador].getNombre() + " ha perdido todos los puntos acumulados. Siguiente turno...");
-                jugadores[jugador].setPuntaje(0);
-            } else {
-                jugadores[jugador].incrementarPuntaje(resultadoTurno);
-            }
+            for(Jugador jugador: jugadores) {
 
-            if (jugadores[jugador].getPuntaje() >= 13) {
-                System.out.println("¡" + jugadores[jugador] + " ha obtenido 13 o más puntos! Todos los demás participantes tienen un turno adicional.");
-                for (int j = 0; j < numParticipantes; j++) {
-                    if (j != jugador) {
-                        jugadores[j].incrementarPuntaje(jugarTurno());
-                    }
+                System.out.println(dtf.format(LocalDateTime.now()) + " - " + obtenerPuntajesFormateados(jugadores));
+                System.out.println();
+                System.out.println(dtf.format(LocalDateTime.now()) + " - Ahora es el turno de " + jugador.getNombre());
+                int resultadoTurno = jugarTurno();
+
+                if (resultadoTurno == 0) {
+                    System.out.println(jugador.getNombre() + " ha perdido todos los puntos acumulados. Siguiente turno...");
+                } else {
+                    jugador.incrementarPuntaje(resultadoTurno);
                 }
-                determinarGanador(jugadores);
-                System.out.println("¡Gracias por jugar!");
-                scanner.close();
-                System.exit(0);
+
+                if (jugador.getPuntaje() >= 13) {
+                    System.out.println("¡" + jugador + " ha obtenido 13 o más puntos! Todos los demás participantes tienen un turno adicional.");
+                    for(Jugador otroJugador: jugadores) {
+                        if (otroJugador != jugador) {
+                            otroJugador.incrementarPuntaje(jugarTurno());
+                        }
+                    }
+                    determinarGanador(jugadores);
+                    System.out.println("¡Gracias por jugar!");
+                    scanner.close();
+                    System.exit(0);
+                }
             }
-            jugador++;
-            if (jugador >= numParticipantes)
-                jugador = 0;
         }
     }
 
@@ -154,7 +152,7 @@ class Juego {
         }
 
         for (Dado dado : dados) {
-            System.out.print(dado.etiqueta());
+            System.out.print(dado.etiqueta() + " ");
         }
         System.out.println();
     }
@@ -218,7 +216,7 @@ class DadoOro extends Dado {
 
     @Override
     public String etiqueta() {
-        return "    ORO     ";
+        return "     ORO     ";
     }
 
     ;
@@ -238,7 +236,7 @@ class DadoPlata extends Dado {
 
     @Override
     public String etiqueta() {
-        return "   PLATA    ";
+        return "    PLATA    ";
     }
 }
 
@@ -256,7 +254,7 @@ class DadoBronce extends Dado {
 
     @Override
     public String etiqueta() {
-        return "   BRONCE   ";
+        return "    BRONCE   ";
     }
 }
 
