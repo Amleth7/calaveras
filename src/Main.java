@@ -7,7 +7,7 @@ import java.util.Scanner;
 
 class Juego {
 
-    private static Scanner scanner = new Scanner(System.in);
+    private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
@@ -74,20 +74,20 @@ class Juego {
 
         while (turnoActivo) {
             List<Dado> dadosLanzados = obtenerDadosAleatorios();
-            int[] resultados = new int[dadosLanzados.size()];
+            List<CaraDado> resultados = new ArrayList<>(dadosLanzados.size());
 
             System.out.println("Obteniendo tres dados del cubo...");
             System.out.println("Lanzando los tres dados...");
 
-            for (int i = 0; i < dadosLanzados.size(); i++) {
-                resultados[i] = dadosLanzados.get(i).lanzar();
+            for (Dado dado : dadosLanzados) {
+                resultados.add(dado.lanzar());
             }
 
             imprimirJugada(dadosLanzados, resultados);
 
-            for (int resultado : resultados) {
-                if (resultado == Dado.ESTRELLA) estrellasTurno++;
-                else if (resultado == Dado.CALAVERA) calaverasTurno++;
+            for (CaraDado resultado : resultados) {
+                if (resultado instanceof Estrella) estrellasTurno++;
+                else if (resultado instanceof Calavera) calaverasTurno++;
             }
 
             System.out.println("Estrellas: " + estrellasTurno + " Calaveras: " + calaverasTurno);
@@ -145,56 +145,16 @@ class Juego {
         return dados;
     }
 
-    private static void imprimirJugada(List<Dado> dadosLanzados, int[] resultados) {
-        String[] calavera = {
-                "+-----------+",
-                "|    _    |",
-                "|   /   \\   |",
-                "|  |() ()|  |",
-                "|   \\   /   |",
-                "|    vvv    |",
-                "+-----------+"
-        };
-        String[] estrella = {
-                "+-----------+",
-                "|     .     |",
-                "|    ,0,    |",
-                "| 'oo000oo' |",
-                "|   ´000´   |",
-                "|   0' '0   |",
-                "+-----------+"
-        };
-        String[] comodin = {
-                "+-----------+",
-                "|           |",
-                "|           |",
-                "|     ?     |",
-                "|           |",
-                "|           |",
-                "+-----------+"
-        };
-
-        String[][] caras = {calavera, estrella, comodin};
-
+    private static void imprimirJugada(List<Dado> dados, List<CaraDado> caraDados) {
         for (int i = 0; i < 7; i++) {
-            for (int j = 0; j < dadosLanzados.size(); j++) {
-                switch (resultados[j]) {
-                    case Dado.CALAVERA -> System.out.print(caras[0][i] + " ");
-                    case Dado.ESTRELLA -> System.out.print(caras[1][i] + " ");
-                    case Dado.COMODIN -> System.out.print(caras[2][i] + " ");
-                }
+            for (int j = 0; j < caraDados.size(); j++) {
+                System.out.print(caraDados.get(j).figura()[i] + " ");
             }
             System.out.println();
         }
 
-        for (Dado dado : dadosLanzados) {
-            if (dado instanceof DadoOro) {
-                System.out.print("    ORO     ");
-            } else if (dado instanceof DadoPlata) {
-                System.out.print("   PLATA    ");
-            } else if (dado instanceof DadoBronce) {
-                System.out.print("   BRONCE   ");
-            }
+        for (Dado dado : dados) {
+            System.out.print(dado.etiqueta());
         }
         System.out.println();
     }
@@ -205,7 +165,7 @@ class Jugador {
     private String nombre = null;
     private int puntaje = 0;
 
-    public Jugador(String nombre){
+    public Jugador(String nombre) {
         this.nombre = nombre;
     }
 
@@ -221,7 +181,7 @@ class Jugador {
         this.puntaje = puntaje;
     }
 
-    public void incrementarPuntaje(int puntaje){
+    public void incrementarPuntaje(int puntaje) {
         this.puntaje += puntaje;
     }
 
@@ -232,37 +192,138 @@ class Jugador {
 }
 
 abstract class Dado {
-    static final int CALAVERA = -1;
-    static final int ESTRELLA = 1;
-    static final int COMODIN = 0;
-    protected static Random random = new Random();
 
-    abstract int lanzar();
+    private static Random random = new Random();
+
+    protected abstract CaraDado[] caras();
+
+    public CaraDado lanzar() {
+        return caras()[random.nextInt(caras().length)];
+    }
+
+    public abstract String etiqueta();
 }
 
 class DadoOro extends Dado {
-    private static final int[] CARAS = {ESTRELLA, COMODIN, ESTRELLA, CALAVERA, ESTRELLA, ESTRELLA};
+    protected CaraDado[] caras() {
+        return new CaraDado[]{
+                new Estrella(),
+                new Comodin(),
+                new Estrella(),
+                new Calavera(),
+                new Estrella(),
+                new Estrella()
+        };
+    }
 
     @Override
-    int lanzar() {
-        return CARAS[random.nextInt(CARAS.length)];
+    public String etiqueta() {
+        return "    ORO     ";
     }
+
+    ;
 }
 
 class DadoPlata extends Dado {
-    private static final int[] CARAS = {CALAVERA, CALAVERA, CALAVERA, CALAVERA, COMODIN, ESTRELLA};
+    protected CaraDado[] caras() {
+        return new CaraDado[]{
+                new Calavera(),
+                new Calavera(),
+                new Calavera(),
+                new Calavera(),
+                new Comodin(),
+                new Estrella()
+        };
+    }
 
     @Override
-    int lanzar() {
-        return CARAS[random.nextInt(CARAS.length)];
+    public String etiqueta() {
+        return "   PLATA    ";
     }
 }
 
 class DadoBronce extends Dado {
-    private static final int[] CARAS = {CALAVERA, ESTRELLA, COMODIN, COMODIN, ESTRELLA, CALAVERA};
+    protected CaraDado[] caras() {
+        return new CaraDado[]{
+                new Calavera(),
+                new Estrella(),
+                new Comodin(),
+                new Comodin(),
+                new Estrella(),
+                new Calavera()
+        };
+    }
 
     @Override
-    int lanzar() {
-        return CARAS[random.nextInt(CARAS.length)];
+    public String etiqueta() {
+        return "   BRONCE   ";
+    }
+}
+
+abstract class CaraDado {
+    abstract int puntaje();
+
+    abstract String[] figura();
+}
+
+final class Estrella extends CaraDado {
+
+    @Override
+    int puntaje() {
+        return 1;
+    }
+
+    @Override
+    String[] figura() {
+        return new String[]{
+                "+-----------+",
+                "|     .     |",
+                "|    ,0,    |",
+                "| 'oo000oo' |",
+                "|   ´000´   |",
+                "|   0' '0   |",
+                "+-----------+"
+        };
+    }
+}
+
+final class Calavera extends CaraDado {
+
+    @Override
+    int puntaje() {
+        return -1;
+    }
+
+    @Override
+    String[] figura() {
+        return new String[]{
+                "+-----------+",
+                "|    _    |",
+                "|   /   \\   |",
+                "|  |() ()|  |",
+                "|   \\   /   |",
+                "|    vvv    |",
+                "+-----------+"
+        };
+    }
+}
+
+final class Comodin extends CaraDado {
+    @Override
+    int puntaje() {
+        return 0;
+    }
+
+    @Override
+    String[] figura() {
+        return new String[]{
+                "+-----------+",
+                "|           |",
+                "|           |",
+                "|     ?     |",
+                "|           |",
+                "|           |",
+                "+-----------+"
+        };
     }
 }
